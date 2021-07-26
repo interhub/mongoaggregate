@@ -1,0 +1,14 @@
+{
+  "name": "mongoaggreagte",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "mongoose": "^5.13.3"
+  },
+  "scripts": {
+    "dev": "nodemon index.js",
+    "start": "index.js",
+    "db": "mongod --dbpath ~/data/db"
+  }
+}
