@@ -1,27 +1,46 @@
-const mongoose = require('mongoose')
+import mongoose from 'mongoose'
 
 mongoose.connect('mongodb://localhost:27017/forum', {useNewUrlParser: true, useUnifiedTopology: true})
 
-const UserSchema = new mongoose.Schema({
+
+interface UserType {
+    name: string;
+    created_at: Date;
+}
+
+const UserSchema = new mongoose.Schema<UserType>({
     name: String,
     created_at: {type: Date, default: Date.now},
 })
-const UserModel = mongoose.model('user', UserSchema)
+const UserModel = mongoose.model<UserType>('user', UserSchema)
 
-const AnswerSchema = new mongoose.Schema({
+interface AnswerType {
+    author: string;
+    text: string;
+    created_at: Date;
+}
+
+const AnswerSchema = new mongoose.Schema<AnswerType>({
     author: {type: mongoose.Types.ObjectId, ref: 'user'},
     text: {type: String, default: ''},
     created_at: {type: Date, default: Date.now}
 })
-const AnswerModel = mongoose.model('answer', AnswerSchema)
+const AnswerModel = mongoose.model<AnswerType>('answer', AnswerSchema)
 
-const QuestionSchema = new mongoose.Schema({
+interface QuestionType {
+    author: string | UserType;
+    text: string;
+    answers: AnswerType[];
+    created_at: Date;
+}
+
+const QuestionSchema = new mongoose.Schema<QuestionType>({
     author: {type: mongoose.Types.ObjectId, ref: 'user'},
     text: String,
     answers: [AnswerSchema],
     created_at: {type: Date, default: Date.now}
 })
-const QuestionModel = mongoose.model('question', QuestionSchema)
+const QuestionModel = mongoose.model<QuestionType>('question', QuestionSchema)
 
 const db = mongoose.connection
 
@@ -41,6 +60,7 @@ const SORT_TYPE = {
 }
 
 const find = async () => {
+
     // const questions = await QuestionModel.find().exec()
     // const users = await UserModel.find().exec()
     // console.log(questions, 'questions')
@@ -56,6 +76,7 @@ const find = async () => {
     // console.log(question, 'question')
 
     // const result = await QuestionModel.findOne().populate('author').exec()
+    // const author = result.author as UserType
     const result = await QuestionModel.aggregate([
         {$unwind: '$answers'},
         {
@@ -64,7 +85,9 @@ const find = async () => {
                 count: {$sum: 1},
             }
         },
-        {$sort: {'_id.created_at': SORT_TYPE.INC}}]).exec()
+        {$replaceRoot: {newRoot: '$_id'}},
+        {$sort: {'created_at': SORT_TYPE.INC}}
+    ]).exec()
     console.log(result, 'result')
 }
 
