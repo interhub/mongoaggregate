@@ -1,3 +1,4 @@
+import {first} from 'lodash'
 import mongoose from 'mongoose'
 
 mongoose.connect('mongodb://localhost:27017/forum', {useNewUrlParser: true, useUnifiedTopology: true})
@@ -79,16 +80,19 @@ const find = async () => {
     // const author = result.author as UserType
     const result = await QuestionModel.aggregate([
         {$unwind: '$answers'},
+        {$replaceRoot: {newRoot: '$answers'}},
         {
             $group: {
-                _id: {text: '$answers.text', created_at: '$answers.created_at'},
+                _id: {text: '$text'},
                 count: {$sum: 1},
             }
         },
+        {$set: {'_id.count': '$count'}},
         {$replaceRoot: {newRoot: '$_id'}},
-        {$sort: {'created_at': SORT_TYPE.INC}}
+        {$sort: {'count': SORT_TYPE.DEC}},
+        {$limit: 1}
     ]).exec()
-    console.log(result, 'result')
+    console.log(first(result), 'result')
 }
 
 find()
