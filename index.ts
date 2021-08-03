@@ -1,4 +1,3 @@
-import {first} from 'lodash'
 import mongoose from 'mongoose'
 
 mongoose.connect('mongodb://localhost:27017/forum', {useNewUrlParser: true, useUnifiedTopology: true})
@@ -10,7 +9,8 @@ interface UserType {
 }
 
 const UserSchema = new mongoose.Schema<UserType>({
-    name: String,
+    name: {type: String, required: true},
+    age: Number,
     created_at: {type: Date, default: Date.now},
 })
 const UserModel = mongoose.model<UserType>('user', UserSchema)
@@ -22,7 +22,7 @@ interface AnswerType {
 }
 
 const AnswerSchema = new mongoose.Schema<AnswerType>({
-    author: {type: mongoose.Types.ObjectId, ref: 'user'},
+    author: {type: mongoose.Types.ObjectId, ref: 'user', required: true},
     text: {type: String, default: ''},
     created_at: {type: Date, default: Date.now}
 })
@@ -50,10 +50,40 @@ db.once('open', function () {
     console.log('connection open!')
 })
 
-// const user = new UserModel({name: 'Mike'})
-// user.save()
-// const question = new QuestionModel({author: user, text: 'what is your name?'})
-// question.save()
+const setUpTestDbCollection = async () => {
+
+    const user1 = new UserModel({name: 'Doni', age: 23})
+    const user2 = new UserModel({name: 'Mark', age: 25})
+
+    await user1.save()
+    await user2.save()
+
+    const question1 = new QuestionModel({author: user1, text: 'what is weather?'})
+    const question2 = new QuestionModel({author: user2, text: 'where is london?'})
+
+    const answer1 = new AnswerModel({author: user2, text: 'weather is good'})
+    const answer2 = new AnswerModel({author: user1, text: 'London is in England'})
+    const answer22 = new AnswerModel({author: user1, text: 'but I`m not sure!'})
+
+    question1.answers.push(answer1)
+    question2.answers.push(answer2)
+    question2.answers.push(answer22)
+
+    await question1.save()
+    await question2.save()
+}
+
+const removeTestDbCollection = async () => {
+    await UserModel.collection.drop()
+    await QuestionModel.collection.drop()
+}
+
+const rewriteTestCollection=async ()=>{
+    await removeTestDbCollection()
+    await setUpTestDbCollection()
+}
+
+rewriteTestCollection()
 
 const SORT_TYPE = {
     INC: 1,
@@ -78,21 +108,39 @@ const find = async () => {
 
     // const result = await QuestionModel.findOne().populate('author').exec()
     // const author = result.author as UserType
-    const result = await QuestionModel.aggregate([
-        {$unwind: '$answers'},
-        {$replaceRoot: {newRoot: '$answers'}},
-        {
-            $group: {
-                _id: {text: '$text'},
-                count: {$sum: 1},
-            }
-        },
-        {$set: {'_id.count': '$count'}},
-        {$replaceRoot: {newRoot: '$_id'}},
-        {$sort: {'count': SORT_TYPE.DEC}},
-        {$limit: 1}
-    ]).exec()
-    console.log(first(result), 'result')
+
+    //
+    // const result = await QuestionModel.aggregate([
+    //     {$unwind: '$answers'},
+    //     {$replaceRoot: {newRoot: '$answers'}},
+    //     {
+    //         $group: {
+    //             _id: {text: '$text'},
+    //             count: {$sum: 1},
+    //         }
+    //     },
+    //     {$set: {'_id.count': '$count'}},
+    //     {$replaceRoot: {newRoot: '$_id'}},
+    //     {$sort: {'count': SORT_TYPE.DEC}},
+    //     {$limit: 1}
+    // ]).exec()
+    // console.log(first(result), 'result')
 }
 
-find()
+// find()
+
+
+/*
+* check-tests keys for learn aggregation pipeline
+*
+* 1) find all selected user answers
+* 2) find all user answers questions
+* 3) find last user answer
+* 4) find last user question
+* 5) find all answers exclude selected user answers
+* 6) find all questions exclude selected user questions
+* 7) find top more active answers users
+* 8) find top  more active questions users
+*
+* * */
+
