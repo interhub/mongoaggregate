@@ -52,7 +52,7 @@ db.once('open', function () {
 
 const setUpTestDbCollection = async () => {
 
-    const user1 = new UserModel({name: 'Doni', age: 23})
+    const user1 = new UserModel({name: 'Donni', age: 23})
     const user2 = new UserModel({name: 'Mark', age: 25})
 
     await user1.save()
@@ -78,19 +78,47 @@ const removeTestDbCollection = async () => {
     await QuestionModel.collection.drop()
 }
 
-const rewriteTestCollection=async ()=>{
+const rewriteTestCollection = async () => {
     await removeTestDbCollection()
     await setUpTestDbCollection()
 }
 
-rewriteTestCollection()
+// rewriteTestCollection()
 
 const SORT_TYPE = {
     INC: 1,
     DEC: -1,
 }
 
+
+/*
+* check-tests keys for learn aggregation pipeline
+*
+* 1) find all selected user answers
+* 2) find all user answers questions
+* 3) find last user answer
+* 4) find last user question
+* 5) find all answers exclude selected user answers
+* 6) find all questions exclude selected user questions
+* 7) find top more active answers users
+* 8) find top  more active questions users
+*
+* * */
+
 const find = async () => {
+
+    /*1*/
+    const user = await UserModel.findOne().select(['name', '_id'])
+    const user_id: string = user._id || ''
+    const answers = await QuestionModel.aggregate([
+        {$unwind: '$answers'},
+        {$replaceRoot: {newRoot: '$answers'}},
+        {$match: {author: user_id}},
+    ]).exec()
+    console.log(answers, user)
+
+    /*2*/
+
 
     // const questions = await QuestionModel.find().exec()
     // const users = await UserModel.find().exec()
@@ -127,20 +155,5 @@ const find = async () => {
     // console.log(first(result), 'result')
 }
 
-// find()
-
-
-/*
-* check-tests keys for learn aggregation pipeline
-*
-* 1) find all selected user answers
-* 2) find all user answers questions
-* 3) find last user answer
-* 4) find last user question
-* 5) find all answers exclude selected user answers
-* 6) find all questions exclude selected user questions
-* 7) find top more active answers users
-* 8) find top  more active questions users
-*
-* * */
+find()
 
