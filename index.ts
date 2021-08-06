@@ -107,17 +107,29 @@ const SORT_TYPE = {
 
 const find = async () => {
 
+    const getOneUser = async (): Promise<{ _id: string, name: string }> => {
+        const user: any = await UserModel.findOne().select(['name', '_id']).exec()
+        console.log('data for user', user)
+        return !!user ? user : {_id: '', name: ''}
+    }
+
+    const {_id} = await getOneUser()
+
+
     /*1*/
-    const user = await UserModel.findOne().select(['name', '_id'])
-    const user_id: string = user._id || ''
     const answers = await QuestionModel.aggregate([
         {$unwind: '$answers'},
         {$replaceRoot: {newRoot: '$answers'}},
-        {$match: {author: user_id}},
+        {$match: {author: _id}},
     ]).exec()
-    console.log(answers, user)
+    console.log(answers, '\n\n\n\n')
 
     /*2*/
+    const questions2 = await QuestionModel.find({author: _id}).populate('author').exec()
+    console.log(questions2, '\n\n\n\n')
+
+    /*3*/
+    const user3 = await UserModel.findOne().select(['name', '_id'])//pretend we have no user object (id only)
 
 
     // const questions = await QuestionModel.find().exec()
