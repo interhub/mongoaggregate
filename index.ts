@@ -50,18 +50,23 @@ db.once('open', function () {
     console.log('connection open!')
 })
 
+const sleep = async (time = 500) => await new Promise((ok) => setTimeout(ok, time))
+
 const setUpTestDbCollection = async () => {
 
     const user1 = new UserModel({name: 'Donni', age: 23})
+    await sleep()
     const user2 = new UserModel({name: 'Mark', age: 25})
 
     await user1.save()
+    await sleep()
     await user2.save()
 
     const question1 = new QuestionModel({author: user1, text: 'what is weather?'})
     const question2 = new QuestionModel({author: user2, text: 'where is london?'})
 
     const answer1 = new AnswerModel({author: user2, text: 'weather is good'})
+    await sleep()
     const answer2 = new AnswerModel({author: user1, text: 'London is in England'})
     const answer22 = new AnswerModel({author: user1, text: 'but I`m not sure!'})
 
@@ -70,6 +75,7 @@ const setUpTestDbCollection = async () => {
     question2.answers.push(answer22)
 
     await question1.save()
+    await sleep()
     await question2.save()
 }
 
@@ -122,14 +128,32 @@ const find = async () => {
         {$replaceRoot: {newRoot: '$answers'}},
         {$match: {author: _id}},
     ]).exec()
-    console.log(answers, '\n\n\n\n')
+    console.log('1', answers, '\n\n\n\n')
 
     /*2*/
     const questions2 = await QuestionModel.find({author: _id}).populate('author').exec()
-    console.log(questions2, '\n\n\n\n')
+    console.log('2', questions2, '\n\n\n\n')
 
     /*3*/
-    const user3 = await UserModel.findOne().select(['name', '_id'])//pretend we have no user object (id only)
+    const answer3 = await QuestionModel.aggregate([
+        {$unwind: '$answers'},
+        {$replaceRoot: {newRoot: '$answers'}},
+        {$sort: {created_at: SORT_TYPE.DEC}},
+        {$limit: 1},
+        {
+            $lookup: {
+                from: 'users',//collection name
+                localField: 'author',//local key (user id)
+                foreignField: '_id',//foreign user key (user id) one to one
+                as: 'author' //new param name
+            }
+        },
+        // take only user
+        // {$unwind: '$author'},
+        // {$replaceRoot: {newRoot: '$author'}},
+    ])
+
+    console.log('3', answer3)
 
 
     // const questions = await QuestionModel.find().exec()
