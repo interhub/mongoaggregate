@@ -111,6 +111,8 @@ const SORT_TYPE = {
 *
 * * */
 
+const indent = '\n\n\n\n'
+
 const find = async () => {
 
     const getOneUser = async (): Promise<{ _id: string, name: string }> => {
@@ -128,14 +130,14 @@ const find = async () => {
         {$replaceRoot: {newRoot: '$answers'}},
         {$match: {author: _id}},
     ]).exec()
-    console.log('1', answers, '\n\n\n\n')
+    console.log('1', answers, indent)
 
     /*2*/
     const questions2 = await QuestionModel.find({author: _id}).populate('author').exec()
-    console.log('2', questions2, '\n\n\n\n')
+    console.log('2', questions2, indent)
 
     /*3*/
-    const answer3 = await QuestionModel.aggregate([
+    const answers3 = await QuestionModel.aggregate([
         {$unwind: '$answers'},
         {$replaceRoot: {newRoot: '$answers'}},
         {$sort: {created_at: SORT_TYPE.DEC}},
@@ -151,10 +153,14 @@ const find = async () => {
         // take only user
         // {$unwind: '$author'},
         // {$replaceRoot: {newRoot: '$author'}},
-    ])
+    ]).exec()
+    const answer3 = answers3[0]
+    console.log('3', answer3, indent)
 
-    console.log('3', answer3)
-
+    /*4*/
+    const questions3 = await QuestionModel.find().sort('-created_at').limit(1).exec()
+    const question3 = questions3[0]
+    console.log('4', question3, indent)
 
     // const questions = await QuestionModel.find().exec()
     // const users = await UserModel.find().exec()
