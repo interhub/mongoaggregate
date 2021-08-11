@@ -106,8 +106,8 @@ const SORT_TYPE = {
 * 4) find last user question
 * 5) find all answers exclude selected user answers
 * 6) find all questions exclude selected user questions
-* 7) find top more active answers users
-* 8) find top  more active questions users
+* 7) find top count active answers users
+* 8) find top count active questions users
 *
 * * */
 
@@ -176,7 +176,21 @@ const find = async () => {
     console.log('6', questions6, indent)
 
     /*7*/
-
+    const users7 = await QuestionModel.aggregate([
+        {$unwind: '$answers'},
+        {$replaceRoot: {newRoot: '$answers'}},
+        {
+            $group: {
+                _id: {author: '$author'},
+                count: {$sum: 1}
+            }
+        },
+        {$sort: {count: -1}},
+        {$replaceRoot: {newRoot: '$_id'}},
+        {$limit: 1}
+    ])
+    const user7 = users7[0]
+    console.log('7', user7, indent)
 
     // const questions = await QuestionModel.find().exec()
     // const users = await UserModel.find().exec()
