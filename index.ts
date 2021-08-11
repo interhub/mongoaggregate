@@ -187,7 +187,17 @@ const find = async () => {
         },
         {$sort: {count: -1}},
         {$replaceRoot: {newRoot: '$_id'}},
-        {$limit: 1}
+        {$limit: 1},
+        {
+            $lookup: {
+                from: 'users',
+                localField: 'author',
+                foreignField: '_id',
+                as: 'author'
+            }
+        },
+        {$unwind: '$author'},
+        {$replaceRoot: {newRoot: '$author'}},
     ])
     const user7 = users7[0]
     console.log('7', user7, indent)
