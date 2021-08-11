@@ -158,9 +158,25 @@ const find = async () => {
     console.log('3', answer3, indent)
 
     /*4*/
-    const questions3 = await QuestionModel.find().sort('-created_at').limit(1).exec()
-    const question3 = questions3[0]
+    const questions4 = await QuestionModel.find().sort('-created_at').limit(1).exec()
+    const question3 = questions4[0]
     console.log('4', question3, indent)
+
+
+    /*5*/
+    const answers5 = await QuestionModel.aggregate([
+        {$unwind: '$answers'},
+        {$replaceRoot: {newRoot: '$answers'}},
+        {$match: {author: {$ne: _id}}},
+    ]).exec()
+    console.log('5', answers5, indent)
+
+    /*6*/
+    const questions6 = await QuestionModel.find({author: {$ne: _id}}).exec()
+    console.log('6', questions6, indent)
+
+    /*7*/
+
 
     // const questions = await QuestionModel.find().exec()
     // const users = await UserModel.find().exec()
@@ -168,7 +184,6 @@ const find = async () => {
     // console.log(users, 'users')
     // const result = await QuestionModel.find().populate('author').exec()
     // console.log(result, 'result')
-
     // const answer = new AnswerModel({text: 'today'})
     //
     // const question = await QuestionModel.findOne().exec()
