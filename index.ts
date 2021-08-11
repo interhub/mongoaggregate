@@ -230,38 +230,6 @@ const find = async () => {
     const user8 = users8[0]
     console.log('8', user8, indent)
 
-    // const questions = await QuestionModel.find().exec()
-    // const users = await UserModel.find().exec()
-    // console.log(questions, 'questions')
-    // console.log(users, 'users')
-    // const result = await QuestionModel.find().populate('author').exec()
-    // console.log(result, 'result')
-    // const answer = new AnswerModel({text: 'today'})
-    //
-    // const question = await QuestionModel.findOne().exec()
-    // question.answers.push(answer)
-    // await question.save()
-    // console.log(question, 'question')
-
-    // const result = await QuestionModel.findOne().populate('author').exec()
-    // const author = result.author as UserType
-
-    //
-    // const result = await QuestionModel.aggregate([
-    //     {$unwind: '$answers'},
-    //     {$replaceRoot: {newRoot: '$answers'}},
-    //     {
-    //         $group: {
-    //             _id: {text: '$text'},
-    //             count: {$sum: 1},
-    //         }
-    //     },
-    //     {$set: {'_id.count': '$count'}},
-    //     {$replaceRoot: {newRoot: '$_id'}},
-    //     {$sort: {'count': SORT_TYPE.DEC}},
-    //     {$limit: 1}
-    // ]).exec()
-    // console.log(first(result), 'result')
 }
 
 find()
