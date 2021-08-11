@@ -187,7 +187,7 @@ const find = async () => {
         },
         {$sort: {count: -1}},
         {$replaceRoot: {newRoot: '$_id'}},
-        {$limit: 1},
+        {$limit: 1}, //set up count top users
         {
             $lookup: {
                 from: 'users',
@@ -201,6 +201,34 @@ const find = async () => {
     ])
     const user7 = users7[0]
     console.log('7', user7, indent)
+
+    /*8*/
+    const users8 = await QuestionModel.aggregate([
+        //easy way remove excess two line indent
+        // {$unwind: '$answers'},
+        // {$replaceRoot: {newRoot: '$answers'}},
+        {
+            $group: {
+                _id: {author: '$author'},
+                count: {$sum: 1}
+            }
+        },
+        {$sort: {count: -1}},
+        {$replaceRoot: {newRoot: '$_id'}},
+        {$limit: 1}, //set up count top users
+        {
+            $lookup: {
+                from: 'users',
+                localField: 'author',
+                foreignField: '_id',
+                as: 'author'
+            }
+        },
+        {$unwind: '$author'},
+        {$replaceRoot: {newRoot: '$author'}},
+    ])
+    const user8 = users8[0]
+    console.log('8', user8, indent)
 
     // const questions = await QuestionModel.find().exec()
     // const users = await UserModel.find().exec()
